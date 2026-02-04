@@ -6,6 +6,7 @@ Flask app runs locally with login, registration, and logout.Password hashing imp
 What Still Needs To Be Done
 Improve template styling (CSS).
 Add database integration?.
+Add more validations to the passwords
 Improve the password strength meter abit and some bug fixes
 
 
