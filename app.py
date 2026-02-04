@@ -3,12 +3,12 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  # change this in production
+app.secret_key = "supersecretkey"  
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# Temporary in-memory user store (replace with DB later)
+
 users = {
     "admin": {"password": bcrypt.generate_password_hash("Admin123").decode("utf-8"), "role": "Admin"},
     "user": {"password": bcrypt.generate_password_hash("User123").decode("utf-8"), "role": "User"}
@@ -34,7 +34,7 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = bcrypt.generate_password_hash(request.form["password"]).decode("utf-8")
-        role = request.form.get("role", "User")  # allow choosing role
+        role = request.form.get("role", "User")  
         users[username] = {"password": password, "role": role}
         return redirect(url_for("login"))
     return render_template("register.html")
@@ -47,7 +47,7 @@ def login():
         if username in users and bcrypt.check_password_hash(users[username]["password"], password):
             user = User(username, users[username]["role"])
             login_user(user)
-            session["role"] = user.role  # store role in session
+            session["role"] = user.role  
             return redirect(url_for("dashboard"))
     return render_template("login.html")
 
@@ -61,7 +61,7 @@ def dashboard():
 @app.route("/admin")
 @login_required
 def admin():
-    if session.get("role") != "Admin":  # check role properly
+    if session.get("role") != "Admin":  
         return "Access Denied", 403
     return render_template("admin.html")
 
