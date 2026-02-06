@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
@@ -33,7 +33,14 @@ def home():
 def register():
     if request.method == "POST":
         username = request.form["username"]
-        password = bcrypt.generate_password_hash(request.form["password"]).decode("utf-8")
+        password_input = request.form["password"]
+
+        # 🚫 Block spaces in password
+        if " " in password_input:
+            flash("❌ Password cannot contain spaces!")
+            return redirect(url_for("register"))
+
+        password = bcrypt.generate_password_hash(password_input).decode("utf-8")
         role = request.form.get("role", "User")  
         users[username] = {"password": password, "role": role}
         return redirect(url_for("login"))
@@ -44,11 +51,19 @@ def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+
+        # 🚫 Block spaces in password
+        if " " in password:
+            flash("❌ Password cannot contain spaces!")
+            return redirect(url_for("login"))
+
         if username in users and bcrypt.check_password_hash(users[username]["password"], password):
             user = User(username, users[username]["role"])
             login_user(user)
             session["role"] = user.role  
             return redirect(url_for("dashboard"))
+        else:
+            flash("❌ Invalid username or password")
     return render_template("login.html")
 
 @app.route("/dashboard")
