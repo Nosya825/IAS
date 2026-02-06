@@ -7,11 +7,41 @@
         <a href="{{ url_for('dashboard') }}">Dashboard</a> |
         <a href="{{ url_for('admin') }}">Admin</a>
     </nav>
+    
+    <script>
+        function checkStrength(password) {
+            let strengthBar = document.getElementById("strength");
+            let spaceWarning = document.getElementById("spaceWarning");
+        
+            if (/\s/.test(password)) {
+                strengthBar.value = 0;
+                spaceWarning.textContent = "❌ Password cannot contain spaces!";
+                return;
+            } else {
+                spaceWarning.textContent = ""; // warningan kung nay spaces
+            }
+        
+            let strength = 0;
+            if (password.match(/[a-z]+/)) strength++;
+            if (password.match(/[A-Z]+/)) strength++;
+            if (password.match(/[0-9]+/)) strength++;
+            if (password.match(/[$@#&!]+/)) strength++;
+        
+            strengthBar.value = strength;
+        }
+    </script>
 
     <h2>Login</h2>
     <form method="POST">
         Username: <input type="text" name="username" required><br>
-        Password: <input type="password" name="password" required><br>
+        Password: 
+        <input type="password" name="password" required 
+               onkeyup="checkStrength(this.value)">
+        <br>
+        <progress id="strength" max="4" value="0"></progress>
+        <br>
+        <span id="spaceWarning" style="color:red; font-weight:bold;"></span>
+        <br>
         <button type="submit">Login</button>
     </form>
 </body>
