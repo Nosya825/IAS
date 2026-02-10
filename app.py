@@ -8,7 +8,7 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-
+# Example users dictionary
 users = {
     "admin": {"password": bcrypt.generate_password_hash("Admin123").decode("utf-8"), "role": "Admin"},
     "user": {"password": bcrypt.generate_password_hash("User123").decode("utf-8"), "role": "User"}
@@ -33,14 +33,7 @@ def home():
 def register():
     if request.method == "POST":
         username = request.form["username"]
-        password_input = request.form["password"]
-
-        # 🚫 Block spaces in password
-        if " " in password_input:
-            flash("❌ Password cannot contain spaces!")
-            return redirect(url_for("register"))
-
-        password = bcrypt.generate_password_hash(password_input).decode("utf-8")
+        password = bcrypt.generate_password_hash(request.form["password"]).decode("utf-8")
         role = request.form.get("role", "User")  
         users[username] = {"password": password, "role": role}
         return redirect(url_for("login"))
@@ -52,18 +45,17 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        # 🚫 Block spaces in password
-        if " " in password:
-            flash("❌ Password cannot contain spaces!")
-            return redirect(url_for("login"))
-
+        # Check if user exists and password matches
         if username in users and bcrypt.check_password_hash(users[username]["password"], password):
             user = User(username, users[username]["role"])
             login_user(user)
             session["role"] = user.role  
             return redirect(url_for("dashboard"))
         else:
+            # Show incorrect login message and keep username filled
             flash("❌ Invalid username or password")
+            return render_template("login.html", username=username)
+
     return render_template("login.html")
 
 @app.route("/dashboard")
