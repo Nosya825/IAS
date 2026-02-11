@@ -33,11 +33,23 @@ def home():
 def register():
     if request.method == "POST":
         username = request.form["username"]
-        password = bcrypt.generate_password_hash(request.form["password"]).decode("utf-8")
-        role = request.form.get("role", "User")  
-        users[username] = {"password": password, "role": role}
+        password = request.form["password"]
+        role = request.form.get("role", "User")
+
+        # ✅ Check if username already exists
+        if username in users:
+            flash("❌ Username already taken. Please choose another.")
+            return render_template("register.html")
+
+        # ✅ If not, create new user
+        hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
+        users[username] = {"password": hashed_pw, "role": role}
+
+        flash("✅ Registration successful! Please log in.")
         return redirect(url_for("login"))
+
     return render_template("register.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
