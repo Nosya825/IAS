@@ -8,7 +8,6 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-
 users = {
     "admin": {"password": bcrypt.generate_password_hash("Admin123").decode("utf-8"), "role": "Admin"},
     "user": {"password": bcrypt.generate_password_hash("User123").decode("utf-8"), "role": "User"}
@@ -18,6 +17,14 @@ class User(UserMixin):
     def __init__(self, username, role):
         self.id = username
         self.role = role
+
+# ✅ Correct placement: outside the class
+@app.after_request
+def add_header(response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 @login_manager.user_loader
 def load_user(username):
@@ -36,12 +43,10 @@ def register():
         password = request.form["password"]
         role = request.form.get("role", "User")
 
-        # ✅ Check if username already exists
         if username in users:
             flash("❌ Username already taken. Please choose another.")
             return render_template("register.html")
 
-        # ✅ If not, create new user
         hashed_pw = bcrypt.generate_password_hash(password).decode("utf-8")
         users[username] = {"password": hashed_pw, "role": role}
 
@@ -50,21 +55,18 @@ def register():
 
     return render_template("register.html")
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
 
-        # Check if user exists and password matches
         if username in users and bcrypt.check_password_hash(users[username]["password"], password):
             user = User(username, users[username]["role"])
             login_user(user)
             session["role"] = user.role  
             return redirect(url_for("dashboard"))
         else:
-            # Show incorrect login message and keeps username f
             flash("❌ Invalid username or password")
             return render_template("login.html", username=username)
 
